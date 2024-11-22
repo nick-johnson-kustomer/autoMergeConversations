@@ -1,0 +1,118 @@
+{
+  "description": "",
+  "name": "conversation-merge",
+  "steps": [
+    {
+      "id": "IL53Spoe",
+      "appVersion": "kustomer-^1.10.2",
+      "action": "kustomer.rest-api.json",
+      "params": {
+        "uri": "https://makesy.api.kustomerapp.com/v1/customers/search",
+        "method": "POST",
+        "data": {
+          "and": [
+            {
+              "conversation_channels": {
+                "equals": "email"
+              }
+            },
+            {
+              "conversation_status": {
+                "equals": "open"
+              }
+            },
+            {
+              "customer_email": {
+                "equals": "{{steps.1.meta.from}}"
+              }
+            }
+          ],
+          "queryContext": "conversation",
+          "timeZone": "America/Los_Angeles"
+        },
+        "headers": {
+          "Authorization": "Bearer {{{variables.673fdd0c6aaac39ede61d3f5}}}",
+          "Content-Type": "application/json"
+        }
+      },
+      "transitions": [
+        {
+          "target": "OxLElGk9",
+          "condition": {
+            "op": "true",
+            "values": [
+              true
+            ]
+          }
+        }
+      ],
+      "errorCases": []
+    },
+    {
+      "id": "rA6AMG5o",
+      "appVersion": "kustomer-^1.10.2",
+      "action": "kustomer.conversation.merge",
+      "params": {
+        "source": "/#steps.1.conversation",
+        "target": "/#steps.OxLElGk9.match"
+      },
+      "transitions": [],
+      "errorCases": []
+    },
+    {
+      "id": "OxLElGk9",
+      "appVersion": "kustomer-^1.10.2",
+      "action": "kustomer.regex-match.generic",
+      "params": {
+        "regex": "(?<=conversation\",\"id\":\")[^\"]+",
+        "testString": "/#steps.IL53Spoe.body"
+      },
+      "transitions": [
+        {
+          "target": "rA6AMG5o",
+          "condition": {
+            "op": "gt",
+            "values": [
+              "/#steps.OxLElGk9.match.length",
+              "10"
+            ]
+          }
+        }
+      ],
+      "errorCases": []
+    }
+  ],
+  "trigger": {
+    "eventName": "kustomer.message.create",
+    "id": "1",
+    "meta": {
+      "displayName": "",
+      "description": ""
+    },
+    "transitions": [
+      {
+        "target": "IL53Spoe",
+        "condition": {
+          "op": "and",
+          "values": [
+            {
+              "op": "eq",
+              "values": [
+                "/#steps.1.channel",
+                "email"
+              ]
+            },
+            {
+              "op": "eq",
+              "values": [
+                "/#steps.1.directionType",
+                "initial-in"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "appVersion": "kustomer-^1.10.2"
+  }
+}
